@@ -1,3 +1,6 @@
+<script setup>
+
+</script>
 <template>
     <div>
         <el-result
@@ -13,6 +16,7 @@
 </template>
 
 <script>
+<<<<<<< HEAD
 import {useRouter} from 'vue-router'
 export default{
   setup() {
@@ -25,5 +29,19 @@ export default{
     jump
   }
   } 
+=======
+import { useRouter } from 'vue-router'
+export default {
+  setup() {
+  const router = useRouter()
+  const jump = () => {
+    router.push('/')
+  }
+
+  return {
+    jump
+  }
+}
+>>>>>>> 84d78db (页面跳转修改)
 }
 </script>
