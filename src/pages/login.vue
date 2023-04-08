@@ -13,7 +13,7 @@
                 <span>账号密码登录</span>
                 <span class="line"></span>
             </div>
-            <el-form :rules="rules" :model="form" class="w-[250px]">
+            <el-form ref="formRef" :rules="rules" :model="form" class="w-[250px]">
                 <el-form-item prop="username">
                     <el-input v-model="form.username" placeholder="请输入用户名">
                         <template #prefix>
@@ -24,7 +24,7 @@
                     </el-input>
                 </el-form-item>
                 <el-form-item prop="password">
-                    <el-input v-model="form.password" placeholder="请输入密码">
+                    <el-input type="password" v-model="form.password" placeholder="请输入密码" show-password>
                         <template #prefix>
                             <el-icon>
                                 <Lock />
@@ -33,7 +33,8 @@
                     </el-input>
                 </el-form-item>
                 <el-form-item>
-                    <el-button round color="#626aef" class="w-[250px]" type="primary" @click="onSubmit">登录</el-button>
+                    <el-button round color="#626aef" class="w-[250px]" type="primary" @click="onSubmit"
+                        :loading="loading">登录</el-button>
                 </el-form-item>
             </el-form>
         </el-col>
@@ -41,8 +42,17 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { ref, reactive } from 'vue'
 import { User, Lock } from '@element-plus/icons-vue'
+import { toast } from '~/composables/util'
+import { useRouter } from 'vue-router'
+import { useStore} from 'vuex'
+import { login, getinfo } from '~/api/manager'
+import {setToken} from '~/composables/auth'
+
+const store = useStore()
+const router = useRouter()
+
 
 // do not use same name with ref
 const form = reactive({
@@ -56,16 +66,10 @@ const rules = {
             required: true,
             message: '用户名不能为空',
             trigger: 'blur'
-        },
-        {
-            min: 3,
-            max: 5,
-            message: '用户名长度必须在3-5个字符',
-            trigger: 'blur'
-        },
+        }
     ],
     password: [
-    {
+        {
             required: true,
             message: '密码不能为空',
             trigger: 'blur'
@@ -73,8 +77,38 @@ const rules = {
     ]
 }
 
+const formRef = ref(null)
+const loading = ref(false)
+
+// 登录校验
 const onSubmit = () => {
-    console.log('submit!')
+    formRef.value.validate((valid) => {
+        if (!valid) {
+            return false
+        }
+        loading.value = true
+        login(form.username, form.password)
+            .then(res => {
+                console.log(res)
+                // 提示成功
+                toast("登录成功")
+            
+                // 储存token和用户相关信息
+                setToken(res.token)
+
+                // 获取用户相关信息
+                getinfo().then(res2 => {
+                    store.commit("SET_USERINFO", res2)
+                    console.log(res2)
+                })
+
+                // 跳转到后台首页
+                router.push("/")
+            })
+            .finally(() => {
+                loading.value = false
+            })
+    })
 }
 </script>
 
